@@ -1,34 +1,35 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# The Scala Configuration API
+# Scala配置API
 
-Play uses the [Typesafe config library](https://github.com/typesafehub/config), but Play also provides a nice Scala wrapper called [`Configuration`](api/scala/play/api/Configuration.html) with more advanced Scala features. If you're not familiar with Typesafe config, you may also want to read the documentation on [[configuration file syntax and features|ConfigFile]].
+Play使用[Typesafe配置库](https://github.com/typesafehub/config)，但Play还提供了一个不错的Scala包装器，名为[`Configuration`](api/scala/play/api/Configuration.html)，该包装器具有更高级的Scala功能。如果您不熟悉Typesafe配置，则可能还需要阅读[[配置文件语法和功能|ConfigFile]]文档。
 
-## Accessing the configuration
+## 访问配置
 
-Typically, you'll obtain a `Configuration` object through [[Dependency Injection|ScalaDependencyInjection]], or simply by passing an instance of `Configuration` to your component:
+通常，您将通过[[依赖注入|ScalaDependencyInjection]]获得`Configuration`对象，或者简单地将`Configuration`的实例传递给组件：
 
 @[inject-config](code/ScalaConfig.scala)
 
-The `get` method is the most common one you'll use. This is used to get a single value at a path in the configuration file.
+该`get`方法是最常用的方法。用于获取配置文件的一个路径中的单个值。
 
 @[config-get](code/ScalaConfig.scala)
 
-It accepts an implicit `ConfigLoader`, but for most common types like `String`, `Int`, and even `Seq[String]`, there are [already loaders defined](api/scala/play/api/ConfigLoader$.html) that do what you'd expect.
+它接受一个隐式`ConfigLoader`，但对于大多数常见类型，如`String`, `Int`,甚至`Seq[String]`，这是您期望的[已定义的加载器](api/scala/play/api/ConfigLoader$.html)。
 
-`Configuration` also supports validating against a set of valid values:
+`Configuration`还支持针对一组有效值进行验证：
 
 @[config-validate](code/ScalaConfig.scala)
 
 ### ConfigLoader
 
-By defining your own [`ConfigLoader`](api/scala/play/api/ConfigLoader.html), you can easily convert configuration into a custom type. This is used extensively in Play internally, and is a great way to bring more type safety to your use of configuration. For example:
+通过定义自己的[`ConfigLoader`](api/scala/play/api/ConfigLoader.html)，您可以轻松地将配置转换为自定义类型。这在Play内部广泛使用，是带来更多安全类型用于配置的好方法。例如：
 
 @[config-loader-example](code/ScalaConfig.scala)
 
-Then you can use `config.get` as we did above:
+然后，您可以像上面那样使用`config.get`：
 
 @[config-loader-get](code/ScalaConfig.scala)
 
-### Optional configuration keys
+### 可选配置键
 
-Play's `Configuration` supports getting optional configuration keys using the `getOptional[A]` method. It works just like `get[A]` but will return `None` if the key does not exist. Instead of using this method, we recommend setting optional keys to `null` in your configuration file and using `get[Option[A]]`. But we provide this method for convenience in case you need to interface with libraries that use configuration in a non-standard way.
+Play的`Configuration`支持使用`getOptional[A]`法获取可选的配置键。它的工作方式与`get[A]`类似，但是如果键不存在，它将返回`None`。
+我们建议在配置文件中将可选键设置为`null`，并使用`get[Option[A]]`，而不是使用此方法。但是，如果您需要与以非标准方式使用配置的库进行接口连接，我们将为您提供方便的此方法。

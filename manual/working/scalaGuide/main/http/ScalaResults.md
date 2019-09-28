@@ -1,70 +1,70 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# Manipulating Results
+# 处理结果
 
-## Changing the default `Content-Type`
+## 更改默认的`Content-Type`
 
-The result content type is automatically inferred from the Scala value that you specify as the response body.
+结果内容类型将从您在响应正文指定的Scala值中自动推断出来。
 
-For example:
+例如：
 
 @[content-type_text](code/ScalaResults.scala)
 
-Will automatically set the `Content-Type` header to `text/plain`, while:
+会自动将`Content-Type`头部设置为`text/plain`，同时：
 
 @[content-type_xml](code/ScalaResults.scala)
 
-will set the Content-Type header to `application/xml`.
+会将Content-Type头部设置为`application/xml`。
 
-> **Tip:** this is done via the `play.api.http.ContentTypeOf` type class.
+> **提示:** 这是通过`play.api.http.ContentTypeOf`类型类完成的。
 
-This is pretty useful, but sometimes you want to change it. Just use the `as(newContentType)` method on a result to create a new similar result with a different `Content-Type` header:
+这是非常有用的，但是有时您想要更改它。只需在结果上使用`as(newContentType)`方法即可创建新的类似结果, 其使用一个不同的`Content-Type`头部：
 
 @[content-type_html](code/ScalaResults.scala)
 
-or even better, using:
+如果使用以下方式，将会更好：
 
 @[content-type_defined_html](code/ScalaResults.scala)
 
-> **Note:** The benefit of using `HTML` instead of the `"text/html"` is that the charset will be automatically handled for you and the actual Content-Type header will be set to `text/html; charset=utf-8`. We will [[see that in a bit|ScalaResults#Changing-the-charset-for-text-based-HTTP-responses]].
+> **注意:** 使用`HTML`代替`"text/html"`的好处是，将自动为您处理字符集，并将实际的Content-Type标头设置为`text/html; charset=utf-8`。我们[[待会再看|ScalaResults#Changing-the-charset-for-text-based-HTTP-responses]]。
 
-## Manipulating HTTP headers
+## 处理HTTP标头
 
-You can also add (or update) any HTTP header to the result:
+您还可以添加(或更新)任何HTTP头部到结果中：
 
 @[set-headers](code/ScalaResults.scala)
 
-Note that setting an HTTP header will automatically discard the previous value if it was existing in the original result.
+请注意，设置HTTP头部将自动覆盖先前的值，如果在原始结果中存在的话。
 
-## Setting and discarding cookies
+## 设置和丢弃Cookie
 
-Cookies are just a special form of HTTP headers but we provide a set of helpers to make it easier.
+Cookies只是HTTP头部的一种特殊形式，但我们提供了一组帮助程序，以使其变得更容易。
 
-You can easily add a Cookie to the HTTP response using:
+您可以使用以下方法轻松地将Cookie添加到HTTP响应中：
 
 @[set-cookies](code/ScalaResults.scala)
 
-Also, to discard a Cookie previously stored on the Web browser:
+另外，要丢弃先前存储在Web浏览器中的Cookie，请执行以下操作：
 
 @[discarding-cookies](code/ScalaResults.scala)
 
-You can also set and remove cookies as part of the same response:
+您还可以在同一响应中设置和删除部分Cookie：
 
 @[setting-discarding-cookies](code/ScalaResults.scala)
 
-## Changing the charset for text based HTTP responses
+## 更改基于文本的HTTP响应的字符集
 
-For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
+对于基于文本的HTTP响应，正确处理字符集非常重要。Play会自动为您处理并默认使用`utf-8`(请参阅[为什么使用utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode))。
 
-The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to update the `Content-Type` header with the proper `;charset=xxx` extension.
+字符集用于将文本响应转换为相应的字节以通过网络套接字发送，并使用适当的`;charset=xxx`扩展去更新`Content-Type`标头。
 
-The charset is handled automatically via the `play.api.mvc.Codec` type class. Just import an implicit instance of `play.api.mvc.Codec` in the current scope to change the charset that will be used by all operations:
+字符集通过`play.api.mvc.Codec`类型类自动处理。只需在当前作用域中导入一个`play.api.mvc.Codec`隐式实例，即可更改所有操作将使用的字符集：
 
 @[full-application-set-myCustomCharset](code/ScalaResults.scala)
 
-Here, because there is an implicit charset value in the scope, it will be used by both the `Ok(...)` method to convert the XML message into `ISO-8859-1` encoded bytes and to generate the `text/html; charset=iso-8859-1` Content-Type header.
+在这里，由于作用域中存在一个隐式字符集值，因此，将XML消息转换为`ISO-8859-1`编码的`Ok(...)`方法和生成`text/html; charset=iso-8859-1`Content-Type头部都将使用该值。
 
-Now if you are wondering how the `HTML` method works, here it is how it is defined:
+现在，如果您想知道`HTML`方法的工作原理，这里是它的定义方式：
 
 @[Source-Code-HTML](code/ScalaResults.scala)
 
-You can do the same in your API if you need to handle the charset in a generic way.
+如果需要以通用方式处理字符集，则可以在API中执行相同的操作。

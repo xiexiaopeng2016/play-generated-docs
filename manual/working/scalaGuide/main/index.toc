@@ -1,18 +1,18 @@
-ScalaHome:Section introduction
-config:Configuration API
-http:HTTP programming
-async:Asynchronous HTTP programming
-templates:The Twirl template engine
-forms:Form submission and validation
-json:Working with Json
-xml:Working with XML
-upload:Handling file upload
-sql:Accessing an SQL database
-cache:Using the Cache
-ws:Calling REST APIs with Play WS
-akka:Integrating with Akka
-i18n:Internationalization with Messages
-dependencyinjection:Dependency Injection
-application:Application Settings
-tests:Testing your application
-logging:Logging
+ScalaHome:章节介绍
+config:配置API
+http:HTTP编程
+async:异步HTTP编程
+templates:Twirl模板引擎
+forms:表单提交和验证
+json:使用Json
+xml:使用XML
+upload:处理文件上传
+sql:访问SQL数据库
+cache:使用缓存
+ws:使用Play WS调用REST API
+akka:与Akka整合
+i18n:信息国际化
+dependencyinjection:依赖注入
+application:应用程序设置
+tests:测试您的应用程序
+logging:日志

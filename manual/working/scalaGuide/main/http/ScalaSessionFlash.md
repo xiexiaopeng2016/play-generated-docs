@@ -1,73 +1,73 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# Session and Flash scopes
+# 会话和Flash作用域
 
-## How it is different in Play
+## 它在Paly中的差异
 
-If you have to keep data across multiple HTTP requests, you can save them in the Session or Flash scopes. Data stored in the Session are available during the whole user Session, and data stored in the Flash scope are available to the next request **only**.
+如果必须跨多个HTTP请求保留数据，则可以将它们保存在Session或Flash作用域中。存储在Session内的数据在整个用户会话期间可用，并存储在Flash作用域内的数据**只**可用于下一个请求。
 
-It’s important to understand that Session and Flash data are not stored by the server but are added to each subsequent HTTP request, using the cookie mechanism. This means that the data size is very limited (up to 4 KB) and that you can only store string values. The default name for the cookie is `PLAY_SESSION`. This can be changed by configuring the key `play.http.session.cookieName` in application.conf.
+重要的是要了解Session和Flash数据不是由服务器存储的，而是使用cookie机制添加到每个后续HTTP请求中的。这意味着数据大小非常有限(最大为4 KB)，并且您只能存储字符串值。cookie的默认名称是`PLAY_SESSION`。可以通过在application.conf中配置`play.http.session.cookieName`键来更改。
 
-> If the name of the cookie is changed, the earlier cookie can be discarded using the same methods mentioned in [[Setting and discarding cookies|ScalaResults]].
+> 如果更改了cookie的名称，则可以使用[[设置和丢弃cookie|ScalaResults]]中提到的相同方法来丢弃早期的cookie。
 
-Of course, cookie values are signed with a secret key so the client can’t modify the cookie data (or it will be invalidated).
+当然，Cookie值是用密钥签名的，因此客户端无法修改Cookie数据(否则它将无效)。
 
-The Play Session is not intended to be used as a cache. If you need to cache some data related to a specific Session, you can use the Play built-in cache mechanism and store a unique ID in the user Session to keep them related to a specific user.
+Play的Session不打算用作缓存。如果您需要缓存与特定Session相关的数据，则可以使用Play内置的缓存机制，并在用户Session中存储唯一ID，以使它们与特定用户相关。
 
-## Session Configuration
+## Session配置
 
-Please see [[Configuring Session Cookies|SettingsSession]] for more information for how to configure the session cookie parameters in `application.conf`.
+请参阅[[配置会话Cookie|SettingsSession]]，以获取有关如何在`application.conf`中配置会话Cookie参数的更多信息。
 
-### Session Timeout / Expiration
+### Session超时/过期
 
-By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, you set the maximum age of the session cookie by configuring the key `play.http.session.maxAge` in `application.conf`, and this will also set `play.http.session.jwt.expiresAfter` to the same value.  The `maxAge` property will remove the cookie from the browser, and the JWT `exp` claim will be set in the cookie, and will make it invalid after the given duration.  Please see [[Configuring Session Cookies|SettingsSession]] for more information.
+默认情况下，Session没有技术上的超时。当用户关闭Web浏览器时，它会过期。如果一个特定应用程序需要功能上的超时，则可以通过配置`application.conf`中的`play.http.session.maxAge`键来设置会话Cookie的最长期限，并且也将设置`play.http.session.jwt.expiresAfter`为相同的值。该`maxAge`属性将cookie从浏览器中删除，并且将在cookie中设置JWT`exp`声明，并在给定的持续时间后使其无效。请参阅[[阅配置会话Cookie|SettingsSession]] for more information，以获取更多信息。
 
-## Storing data in the Session
+## 在会话中存储数据
 
-As the Session is just a Cookie, it is also just an HTTP header. You can manipulate the session data the same way you manipulate other results properties:
+由于Session只是一个Cookie，因它也是一个HTTP头部。您可以使用与处理其他结果属性相同的方式来处理会话数据：
 
 @[store-session](code/ScalaSessionFlash.scala)
 
-Note that this will replace the whole session. If you need to add an element to an existing Session, just add an element to the incoming session, and specify that as new session:
+请注意，这将替换整个Session。如果需要将元素添加到现有Session中，只需将元素添加到传入Session中，然后将其指定为新Session：
 
 @[add-session](code/ScalaSessionFlash.scala)
 
-You can remove any value from the incoming session the same way:
+您可以使用相同的方法从传入会话中删除任何值：
 
 @[remove-session](code/ScalaSessionFlash.scala)
 
-## Reading a Session value
+## 读取会话值
 
-You can retrieve the incoming Session from the HTTP request:
+您可以从HTTP请求中检索传入的会话：
 
 @[index-retrieve-incoming-session](code/ScalaSessionFlash.scala)
 
-## Discarding the whole session
+## 丢弃整个会话
 
-There is special operation that discards the whole session:
+有一个特殊的操作会丢弃整个会话：
 
 @[discarding-session](code/ScalaSessionFlash.scala)
 
-## Flash scope
+## Flash作用域
 
-The Flash scope works exactly like the Session, but with two differences:
+Flash作用域的工作与Session完全相同，但有两个区别：
 
-- data are kept for only one request
-- the Flash cookie is not signed, making it possible for the user to modify it.
+- 数据仅为一个请求保留
+- Flash cookie没有签名，因此用户可以对其进行修改。
 
-> **Important:** The Flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
+> **重要说明:** Flash作用域仅应用于在简单的非Ajax应用程序上传输成功/错误消息。由于数据仅为下一个请求保留，并且由于在复杂的Web应用程序中不能保证请求的顺序，因此Flash作用域受竞争条件的影响。
 
-Here are a few examples using the Flash scope:
+以下是一些使用Flash作用域的示例：
 
 @[using-flash](code/ScalaSessionFlash.scala)
 
-To retrieve the Flash scope value in your view, add an implicit Flash parameter:
+要在您的视图中检索Flash作用域值，请添加一个隐式Flash参数：
 
 @[flash-template](code/scalaguide/http/scalasessionflash/views/index.scala.html)
 
-And in your Action, specify an `implicit request =>` as shown below:
+在您的Action中指定一个`implicit request =>`，如下所示：
 
 @[flash-implicit-request](code/ScalaSessionFlash.scala)
 
-An implicit Flash will be provided to the view based on the implicit request.
+将基于隐式请求将一个隐式Flash提供给视图。
 
-If the error '_could not find implicit value for parameter flash: play.api.mvc.Flash_' is raised then this is because your Action didn't have an implicit request in scope.
+如果引发了'_找不到参数flash的隐式值: play.api.mvc.Flash_'错误，则这是因为您的Action在作用域内没有隐式请求。

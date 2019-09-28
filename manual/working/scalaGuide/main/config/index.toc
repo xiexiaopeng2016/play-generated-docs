@@ -1,2 +1,2 @@
-ScalaConfig:The Configuration API
+ScalaConfig:配置API
 

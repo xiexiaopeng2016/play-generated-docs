@@ -1,8 +1,8 @@
-ScalaActions:Actions, Controllers and Results
-ScalaRouting:HTTP Routing
-ScalaResults:Manipulating HTTP results
-ScalaSessionFlash:Session and Flash scopes
-ScalaBodyParsers:Body parsers
-ScalaActionsComposition:Actions composition
-ScalaContentNegotiation:Content negotiation
-ScalaErrorHandling:Handling errors
+ScalaActions:动作，控制器和结果
+ScalaRouting:HTTP路由
+ScalaResults:处理HTTP结果
+ScalaSessionFlash:Session和Flash scope
+ScalaBodyParsers:主体解析器
+ScalaActionsComposition:动作组合
+ScalaContentNegotiation:内容协商
+ScalaErrorHandling:处理错误

@@ -1,92 +1,96 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# Actions, Controllers and Results
+# 动作，控制器和结果
 
-## What is an Action?
+## 什么是动作？
 
-Most of the requests received by a Play application are handled by an `Action`.
+Play应用收到的大多数请求都由`Action`来处理。
 
-A `play.api.mvc.Action` is basically a `(play.api.mvc.Request => play.api.mvc.Result)` function that handles a request and generates a result to be sent to the client.
+一个`play.api.mvc.Action`基本上是一个`(play.api.mvc.Request => play.api.mvc.Result)`函数，它处理一个请求并生成要发送到客户端的结果。
 
 @[echo-action](code/ScalaActions.scala)
 
-An action returns a `play.api.mvc.Result` value, representing the HTTP response to send to the web client. In this example `Ok` constructs a **200 OK** response containing a **text/plain** response body.
+一个动作返回一个`play.api.mvc.Result`值，该值表示要发送到Web客户端的HTTP响应。在此示例中，`Ok`构造一个**200 OK**响应，其包含一个**text/plain**响应主体。
 
-## Building an Action
 
-Within any controller extending `BaseController`, the `Action` value is the default action builder. This action builder contains several helpers for creating `Action`s.
 
-The first simplest one just takes as argument an expression block returning a `Result`:
+## 构建动作
+
+在任何扩展`BaseController`的控制器中，该`Action`值是默认的动作构建器。该动作构建器包含多个用于创建`Action`的帮助器。
+
+第一个最简单的构建器只是把一个返回`Result`的表达式块作为参数：
 
 @[zero-arg-action](code/ScalaActions.scala)
 
-This is the simplest way to create an Action, but we don't get a reference to the incoming request. It is often useful to access the HTTP request calling this Action.
+这是创建Action的最简单方法，但是我们没有获得传入请求的引用。在动作调用中访问HTTP请求通常很有用。
 
-So there is another Action builder that takes as an argument a function `Request => Result`:
+因此，还有另一个Action构建器以一个`Request => Result`函数作为参数：
 
 @[request-action](code/ScalaActions.scala)
 
-It is often useful to mark the `request` parameter as `implicit` so it can be implicitly used by other APIs that need it:
+将`request`参数标记为`implicit`通常很有用，以便其他需要它的API可以隐式的使用它：
 
 @[implicit-request-action](code/ScalaActions.scala)
 
-If you have broken up your code into methods, then you can pass through the implicit request from the action:
+如果您已将代码分解为方法，则可以传递Action中的隐式请求：
 
 @[implicit-request-action-with-more-methods](code/ScalaActions.scala)
 
-The last way of creating an Action value is to specify an additional `BodyParser` argument:
+创建Action值的最后一种方法是指定一个附加的`BodyParser`参数：
 
 @[json-parser-action](code/ScalaActions.scala)
 
-Body parsers will be covered later in this manual.  For now you just need to know that the other methods of creating Action values use a default **Any content body parser**.
+正文解析器将在本手册的后面部分介绍。现在，您只需要知道创建Action值的其他方法使用默认的**Any content body parser**解析器即可。
 
-## Controllers are action generators
+## 控制器是动作生成器
 
-A controller in Play is nothing more than an object that generates `Action` values. Controllers are typically defined as classes to take advantage of [[Dependency Injection|ScalaDependencyInjection]].
+Play中的控制器不过是一个生成`Action`值的对象。控制器通常被定义为利用[[依赖注入|ScalaDependencyInjection]]的类。
 
-> **Note:** Keep in mind that defining controllers as objects will not be supported in future versions of Play. Using classes is the recommended approach.
+注意：请记住，将来的Play版本将不支持将控制器定义为对象。建议使用类。
 
-The simplest use case for defining an action generator is a method with no parameters that returns an `Action` value:
+> **注意:** 请记住，将来的Play版本将不支持将控制器定义为对象。建议使用类。
+
+定义动作生成器的最简单用例是一个没有参数的方法，该方法返回`Action`值：
 
 @[full-controller](code/ScalaActions.scala)
 
-Of course, the action generator method can have parameters, and these parameters can be captured by the `Action` closure:
+当然，动作生成器方法可以具有参数，并且这些参数可以由`Action`闭包捕获：
 
 @[parameter-action](code/ScalaActions.scala)
 
-## Simple results
+## 简单的结果
 
-For now we are just interested in simple results: an HTTP result with a status code, a set of HTTP headers and a body to be sent to the web client.
+现在，我们只对简单的结果感兴趣：一个带有状态码的HTTP结果，一组HTTP头部和要发送到Web客户端的正文。
 
-These results are defined by `play.api.mvc.Result`:
+这些结果定义为`play.api.mvc.Result`：
 
 @[simple-result-action](code/ScalaActions.scala)
 
-Of course there are several helpers available to create common results such as the `Ok` result in the sample above:
+当然，有几个助手可以用来创建常见结果，例如上面示例中的`Ok`结果：
 
 @[ok-result-action](code/ScalaActions.scala)
 
-This produces exactly the same result as before.
+这将产生与以前完全相同的结果。
 
-Here are several examples to create various results:
+以下是创建各种结果的几个示例：
 
 @[other-results](code/ScalaActions.scala)
 
-All of these helpers can be found in the `play.api.mvc.Results` trait and companion object.
+所有这些帮助程序都可以在`play.api.mvc.Results`特质和伴生对象中找到。
 
-## Redirects are simple results too
+## 重定向也是简单的结果
 
-Redirecting the browser to a new URL is just another kind of simple result. However, these result types don't take a response body.
+将浏览器重定向到新的URL只是另一种简单的结果。但是，这种结果类型不包含响应主体。
 
-There are several helpers available to create redirect results:
+有几种可用于创建重定向结果的助手：
 
 @[redirect-action](code/ScalaActions.scala)
 
-The default is to use a `303 SEE_OTHER` response type, but you can also set a more specific status code if you need one:
+默认是使用`303 SEE_OTHER`响应类型，但是如果需要，您还可以设置更具体的状态代码：
 
 @[moved-permanently-action](code/ScalaActions.scala)
 
-## `TODO` dummy page
+## `TODO` 虚拟页面
 
-You can use an empty `Action` implementation defined as `TODO`: the result is a standard ‘Not implemented yet’ result page:
+您可以使用定义为`TODO`的实现空`Action`：结果是标准的“尚未实现”结果页：
 
 @[todo-action](code/ScalaActions.scala)

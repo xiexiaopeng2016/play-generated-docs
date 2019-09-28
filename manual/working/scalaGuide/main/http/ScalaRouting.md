@@ -1,124 +1,126 @@
 <!--- Copyright (C) 2009-2019 Lightbend Inc. <https://www.lightbend.com> -->
-# HTTP routing
+# HTTP 路由
 
-## The built-in HTTP router
+## 内建的HTTP路由器
 
-The router is the component in charge of translating each incoming HTTP request to an Action.
+路由器是负责将每个传入的HTTP请求转换为动作的组件。
 
-An HTTP request is seen as an event by the MVC framework. This event contains two major pieces of information:
+MVC框架将HTTP请求视为一个事件。此事件包含两个主要信息：
 
-- the request path (e.g. `/clients/1542`, `/photos/list`), including the query string
-- the HTTP method (e.g. `GET`, `POST`, …).
+- 请求路径(例如`/clients/1542`, `/photos/list`)，包括查询字符串
+- HTTP方法(例如`GET`, `POST`, …)。
 
-Routes are defined in the `conf/routes` file, which is compiled. This means that you’ll see route errors directly in your browser:
+路由在已编译的`conf/routes`文件中定义。这意味着您将直接在浏览器中看到路由错误：
 
 [[images/routesError.png]]
 
-## Dependency Injection
+## 依赖注入
 
-Play's default routes generator creates a router class that accepts controller instances in an `@Inject`-annotated constructor. That means the class is suitable for use with dependency injection and can also be instantiated manually using the constructor.
+Play的默认路由生成器会创建一个路由器类，该类在带@Inject注释的构造函数中接受控制器实例。这意味着该类适合与依赖项注入一起使用，也可以使用构造函数手动实例化。
 
-Before Play 2.7.0, Play supported a static routes generator that allowed defining controllers as `object`s instead of `class`es. That is no longer supported, as Play no longer relies on static state. If you wish to use your own static state you can still do so in a controller that is a `class`.
+在Play 2.7.0之前，Play支持一个静态路由生成器，该生成器允许将控制器定义为`object`而不是`class`。由于Play不再依赖静态状态，因此不再支持该功能。如果您希望使用自己的静态状态，则仍可以在控制器中使用`class`。
 
-## The routes file syntax
+## 路由文件语法
 
-`conf/routes` is the configuration file used by the router. This file lists all of the routes needed by the application. Each route consists of an HTTP method and URI pattern, both associated with a call to an `Action` generator.
+`conf/routes`是路由器使用的配置文件。该文件列出了应用程序所需的所有路由。每个路由都包含一个HTTP方法和URI模式，它们都与对`Action`生成器的调用相关联。
 
-Let’s see what a route definition looks like:
+让我们看看路由定义是什么样的：
 
 @[clients-show](code/scalaguide.http.routing.routes)
 
-Each route starts with the HTTP method, followed by the URI pattern. The last element is the call definition.
+每个路由均以HTTP方法开头，随后是URI模式。最后一个元素是调用定义。
 
-You can also add comments to the route file, with the `#` character.
+您也可以使用`#`字符将注释添加到路由文件。
 
 @[clients-show-comment](code/scalaguide.http.routing.routes)
 
-You can tell the routes file to use a different router under a specific prefix by using "->" followed by the given prefix:
+您可以告诉路由文件使用一个指定前缀后面的路由器，即"->"紧随的前缀:
 
 ```
 ->      /api                        api.MyRouter
 ```
 
-This is especially useful when combined with [[String Interpolating Routing DSL|ScalaSirdRouter]] also known as SIRD routing, or when working with [[sub projects|sbtSubProjects]] that route using several routes files.
+此功能特别有用， 当与[[字符串内插路由DSL|ScalaSirdRouter]](也称为SIRD路由)结合使用时，或者与使用多个路由文件进行路由的[[子项目|sbtSubProjects]]一起使用时。
 
-It is also possible to apply modifiers by preceding the route with a line starting with a `+`. This can change the behavior of certain Play components. One such modifier is the "nocsrf" modifier to bypass the [[CSRF filter|ScalaCsrf]]:
+也可以通过在路径前面加上以开头`+`的行来应用修饰符。这可以更改某些Play组件的行为。这样的修饰符之一就是"nocsrf"修饰符，它绕过了[[CSRF过滤器|ScalaCsrf]]:
 
 @[nocsrf](code/scalaguide.http.routing.routes)
 
-## The HTTP method
+## HTTP方法
 
-The HTTP method can be any of the valid methods supported by HTTP (`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`).
+HTTP方法可以是任何HTTP支持的有效方法(`GET`, `PATCH`, `POST`, `PUT`, `DELETE`, `HEAD`)。
 
-## The URI pattern
+## URI模式
 
-The URI pattern defines the route’s request path. Parts of the request path can be dynamic.
+URI模式定义了路由的请求路径。请求路径的一部分可以是动态的。
 
-### Static path
+### 静态路径
 
-For example, to exactly match incoming `GET /clients/all` requests, you can define this route:
+例如，要完全匹配传入的`GET /clients/all`请求，可以定义以下路由：
 
 @[static-path](code/scalaguide.http.routing.routes)
 
-### Dynamic parts
+### 动态部分
 
-If you want to define a route that retrieves a client by ID, you’ll need to add a dynamic part:
+如果要定义通过ID检索顾客的路由，则需要添加动态部份：
 
 @[clients-show](code/scalaguide.http.routing.routes)
 
-> **Note:** A URI pattern may have more than one dynamic part.
+> **注意:** 一个URI模式可能包含多个动态部分。
 
-The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI path segment. Unlike other pattern types, path segments are automatically URI-decoded in the route, before being passed to your controller, and encoded in the reverse route.
+动态部分的默认匹配策略由正则表达式`[^/]+`定义，这意味着定义为`:id`的任何动态部分都将完全匹配一个URI路径片段。与其他模式类型不同，路径片段在传递给控制器​​之前会先在路径中自动进行URI解码，然后在反向路径中进行编码。
 
-### Dynamic parts spanning several `/`
+### 跨多个`/`的动态部分
 
-If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, also known as a wildcard pattern, which uses the `.*` regular expression:
+如果希望动态部分捕获多个以正斜杠分隔的URI路径片段，则可以使用`*id`语法(也称为通配符模式)来定义动态部分，该语法使用`.*`正则表达式：
 
 @[spanning-path](code/scalaguide.http.routing.routes)
 
-Here for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
+在这里，一个类似`GET /files/images/logo.png`的请求，`name`动态部分将捕获`images/logo.png`值。
+
+请注意，跨越几个动态部分/不会由路由器解码或由反向路由器编码。您有责任像对任何用户输入一样，验证原始URI段。反向路由器仅执行字符串连接，因此您需要确保生成的路径有效，并且不包含例如多个前导斜线或非ASCII字符。
 
 Note that *dynamic parts spanning several `/` are not decoded by the router or encoded by the reverse router*. It is your responsibility to validate the raw URI segment as you would for any user input. The reverse router simply does a string concatenation, so you will need to make sure the resulting path is valid, and does not, for example, contain multiple leading slashes or non-ASCII characters.
 
-### Dynamic parts with custom regular expressions
+### 具有自定义正则表达式的动态部分
 
-You can also define your own regular expression for the dynamic part, using the `$id<regex>` syntax:
+您还可以使用以下`$id<regex>`语法为动态部分定义自己的正则表达式：
 
 @[regex-path](code/scalaguide.http.routing.routes)
 
-Just like with wildcard routes, the parameter is *not decoded by the router or encoded by the reverse router*. You're responsible for validating the input to make sure it makes sense in that context.
+就像通配符路由一样，该参数*不会由路由器解码或由反向路由器编码*。您负责验证输入，以确保在这种情况下有意义。
 
-## Call to the Action generator method
+## 调用动作生成器方法
 
-The last part of a route definition is the call. This part must define a valid call to a method returning a `play.api.mvc.Action` value, which will typically be a controller action method.
+路由定义的最后一部分是调用。这部分必须定义一个有效调用，方法返回`play.api.mvc.Action`值，该方法通常是控制器动作方法。
 
-If the method does not define any parameters, just give the fully-qualified method name:
+如果该方法未定义任何参数，则只需提供完全限定的方法名称：
 
 @[home-page](code/scalaguide.http.routing.routes)
 
-If the action method defines some parameters, all these parameter values will be searched for in the request URI, either extracted from the URI path itself, or from the query string.
+如果动作方法定义了一些参数，所有这些参数值将从请求URI中搜索，从URI路径本身或查询字符串中提取。
 
 @[page](code/scalaguide.http.routing.routes)
 
-Or:
+或者:
 
 @[page](code/scalaguide.http.routing.query.routes)
 
-Here is the corresponding, `show` method definition in the `controllers.Application` controller:
+与其对应的，这是定义在`controllers.Application`控制器中的`show`方法：
 
 @[show-page-action](code/ScalaRouting.scala)
 
-### Parameter types
+### 参数类型
 
-For parameters of type `String`, typing the parameter is optional. If you want Play to transform the incoming parameter into a specific Scala type, you can explicitly type the parameter:
+对于`String`类型的参数，指定参数类型是可选的。如果要让Play将传入的参数转换为特定的Scala类型，则可以显式指定参数类型:
 
 @[clients-show](code/scalaguide.http.routing.routes)
 
-And do the same on the corresponding `show` method definition in the `controllers.Clients` controller:
+并在`controllers.Clients`控制器中相应的`show`方法定义上执行相同的操作：
 
 @[show-client-action](code/ScalaRouting.scala)
 
-Play supports the following Parameter Types:
+Play支持以下参数类型:
 
 - String
 - Int
@@ -127,95 +129,95 @@ Play supports the following Parameter Types:
 - Float
 - Boolean
 - UUID
-- AnyVal wrappers for other supported types
+- 其他支持类型的AnyVal包装器
 
-If you have a different type and want to implement it you can take a look at [[Request Binders|ScalaRequestBinders]]
+如果您有其他类型并想要实现它，可以看一看[[Request Binders|ScalaRequestBinders]]
 
-### Parameters with fixed values
+### 具有固定值的参数
 
-Sometimes you’ll want to use a fixed value for a parameter:
+有时，您需要为参数使用固定值：
 
 @[page](code/scalaguide.http.routing.fixed.routes)
 
-### Parameters with default values
+### 具有默认值的参数
 
-You can also provide a default value that will be used if no value is found in the incoming request:
+您还可以提供一个默认值，如果传入请求中未找到任何值，则将使用该默认值：
 
 @[clients](code/scalaguide.http.routing.defaultvalue.routes)
 
-### Optional parameters
+### 可选参数
 
-You can also specify an optional parameter that does not need to be present in all requests:
+您还可以指定一个不需要在所有请求中都出现的可选参数：
 
 @[optional](code/scalaguide.http.routing.routes)
 
-## Routing priority
+## 路由优先级
 
-Many routes can match the same request. If there is a conflict, the first route (in declaration order) is used.
+多条路由可以匹配相同的请求。如果存在冲突，则使用第一条路由(按声明顺序)。
 
-## Reverse routing
+## 反向路由
 
-The router can also be used to generate a URL from within a Scala call. This makes it possible to centralize all your URI patterns in a single configuration file, so you can be more confident when refactoring your application.
+路由器还可以用于从Scala调用中生成URL。这样就可以将所有URI模式集中在一个配置文件中，因此您可以在重构应用程序时更加放心。
 
-For each controller used in the routes file, the router will generate a ‘reverse controller’ in the `routes` package, having the same action methods, with the same signature, but returning a `play.api.mvc.Call` instead of a `play.api.mvc.Action`.
+对于路由文件中使用的每个控制器，路由器将在`routes`程序包中生成一个'反向控制器'，具有相同的动作方法，相同的签名，但返回一个`play.api.mvc.Call`而不是`play.api.mvc.Action`。
 
-The `play.api.mvc.Call` defines an HTTP call, and provides both the HTTP method and the URI.
+在`play.api.mvc.Call`定义了一个HTTP调用，并同时提供了HTTP方法和URI。
 
-For example, if you create a controller like:
+例如，如果您创建一个这样的控制器：
 
 @[reverse-controller](code/ScalaRouting.scala)
 
-And if you map it in the `conf/routes` file:
+如果将其映射到`conf/routes`文件中：
 
 @[route](code/scalaguide.http.routing.reverse.routes)
 
-You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
+然后，您可以将URL反向转换为动作方法`hello`， 通过使用`controllers.routes.Application`反向控制器：
 
 @[reverse-router](code/ScalaRouting.scala)
 
-> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.Application.hello` can be reversed via `controllers.routes.Application.hello` (as long as there is no other route before it in the routes file that happens to match the generated path).
+注意：每个控制器程序包都有一个`routes`子程序包。因此，`controllers.Application.hello`动作可以通过`controllers.routes.Application.hello`来反转动作(只要在路由文件中没有与生成的路径匹配的其他路由)。
 
-The reverse action method works quite simply: it takes your parameters and substitutes them back into the route pattern.  In the case of path segments (`:foo`), the value is encoded before the substitution is done.  For regex and wildcard patterns the string is substituted in raw form, since the value may span multiple segments.  Make sure you escape those components as desired when passing them to the reverse route, and avoid passing unvalidated user input.
+反转动作方法的工作原理非常简单：它将您的参数替换为路由模式。在路径片段(`:foo`)的情况下，值在替换之前已编码。对于正则表达式和通配符模式，该字符串以原始形式替换，因为该值可能跨越多个段。确保根据需要转义这些组件, 将这些组件传递到反向路径时，并避免传递未经验证的用户输入。
 
-## Relative routes
+## 相对路由
 
-There are instances where returning a relative route instead of an absolute may be useful.  The routes returned by `play.mvc.Call` are always absolute (they lead with a `/`), which can lead to problems when requests to your web application are rewritten by HTTP proxies, load balancers, and API gateways.  Some examples where using a relative route would be useful include:
+在某些情况下，返回相对路径而不是绝对路径可能会很有用。`play.mvc.Call`返回的路由始终是绝对的(它们以开头`/`)，这可能会导致问题，当通过HTTP代理，负载平衡器和API网关重写对Web应用程序的请求时。使用相对路线会有用的一些示例包括：
 
-* Hosting an app behind a web gateway that prefixes all routes with something other than what is configured in your `conf/routes` file, and roots your application at a route it's not expecting.
-* When dynamically rendering stylesheets, you need asset links to be relative because they may end up getting served from different URLs by a CDN.
+* 在Web网关后面托管一个应用程序，该应用程序为所有路由添加`conf/routes`文件中未配置的前缀，并将您的应用程序以不期望的路由为根。
+* 动态渲染样式表时，您需要资产链接是相对的，因为它们最终可能由CDN从不同的URL提供服务。
 
-To be able to generate a relative route you need to know what to make the target route relative to (the start route).  The start route can be retrieved from the current `RequestHeader`.  Therefore, to generate a relative route it's required that you pass in your current `RequestHeader` or the start route as a `String` parameter.
+为了能够生成相对路由，您需要知道相对于目标路由的内容(起始路由)。可以从当前`RequestHeader`中检索开始路由。因此，要生成相对路由，需要将当前`RequestHeader`或起始路由作为`String`参数传递。
 
-For example, given controller endpoints like:
+例如，给定的控制器端点如下：
 
 @[relative-controller](code/scalaguide/http/routing/relative/controllers/Relative.scala)
 
-> **Note:** The current request is passed to the view template implicitly by declaring an `implicit request`
+> **注意:** 通过声明一个`implicit request`，将当前请求隐式传递给视图模板。
 
-And if you map it in the `conf/routes` file:
+如果将其映射到`conf/routes`文件中：
 
 @[relative-hello](code/scalaguide.http.routing.relative.routes)
 
-You can then define relative routes using the reverse router as before and include an additional call to `relative`:
+然后，您可以像前面一样使用反向路由器定义相对路由，并包括一个附加的对`relative`的调用:
 
 @[relative-hello-view](code/scalaguide/http/routing/relative/views/hello.scala.html)
 
-> **Note:** The `Request` passed from the controller is cast to a `RequestHeader` and is marked `implicit` in the view parameters.  It is then passed implicitly to the call to `relative`
+> **注意:** 从控制器传递`Request`被转换为`RequestHeader`, 并在视图参数中被标记为`implicit`。然后将其隐式传递给对`relative`的调用
 
-When requesting `/foo/bar/hello` the generated HTML will look like so:
+请求`/foo/bar/hello`时生成的HTML将如下所示：
 
 @[relative-hello-html](code/scalaguide/http/routing/relative/views/hello.html)
 
-## The Default Controller
+## 默认控制器
 
-Play includes a [`Default` controller](api/scala/controllers/Default.html) which provides a handful of useful actions. These can be invoked directly from the routes file:
+Play包括一个[`Default`控制器](api/scala/controllers/Default.html)，它提供了一些有用的动作。这些可以直接从路由文件中调用：
 
 @[defaultcontroller](code/scalaguide.http.routing.defaultcontroller.routes)
 
-In this example, `GET /about` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+在此示例中，`GET /about`重定向到外部网站，但是也可以重定向到另一个动作(例如在上面的示例中的`/posts`)。
 
-## Custom routing
+## 自定义路由
 
-Play provides a DSL for defining embedded routers called the *String Interpolating Routing DSL*, or SIRD for short.  This DSL has many uses, including embedding a light weight Play server, providing custom or more advanced routing capabilities to a regular Play application, and mocking REST services for testing.
+Play提供了一个用于定义嵌入式路由器的DSL，称为*字符串插值路由DSL*，简称SIRD。这种DSL有很多用途，包括嵌入轻量级的Play服务器，为常规的Play应用程序提供自定义或更高级的路由功能，以及用于测试的模拟REST服务。
 
-See [[String Interpolating Routing DSL|ScalaSirdRouter]]
+请参阅[[字符串插值路由DSL|ScalaSirdRouter]]
